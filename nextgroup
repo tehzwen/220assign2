@@ -1,0 +1,29 @@
+#!/bin/bash
+
+args=$@
+
+if [ "$1" == "-h" ]; then
+	echo -e "usage: $(basename -- "$0") [options] [[n]-[m]]\nDetermine the minimum used numeric group ID. If provided, n and m\nlimit (inclusively) the minimum and maximum group IDs for the search."
+	shift
+
+fi
+
+firstNum=$(echo $1 | cut -f 1 -d '-')
+lastNum=$(echo $1 | rev | cut -f 1 -d '-' | rev)
+
+if [ "$firstNum" == "" ]; then
+	echo "no first number"
+
+elif [ "$lastNum" == "" ] ; then
+	echo "no second number"
+
+
+	
+fi
+
+echo $firstNum
+echo $lastNum
+
+
+
+

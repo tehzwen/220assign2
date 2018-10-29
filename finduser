@@ -1,40 +1,59 @@
 #!/bin/bash
 
 
+#Zachary Shaw
+#CMPT220/Fall2018
+#Assignment2 
+#finduser
+
+
+#initializing variables we will use
 args=$#
 totalString=""
 count=0
 
+#check if no arguments are passed to the command
 if [ $args -eq 0 ] ; then
 	echo -e "usage: $(basename -- "$0") search_term...\nFind every user that has all of the case-insensitive unordered search\nterms present in his/her account's comment field."
 else
+	#get initial results from passwd db and find the first argument in it
 	temp=$(getent passwd | grep -i $1)
+	#set tempTwo to temp just incase only a single argument is passed 
 	tempTwo=$temp 
+
+	#shift to the next argument
 	shift
 
+	#check if argument still exists, if it does set tempTwo to the grep of it and shift again
 	while [ $1 ]; do
 		tempTwo=$(grep -i "$1" <<< "$temp")
 		shift
 	done
 	
 
-
+	#go through the resulting data split on spaces 
 	for result in $tempTwo; do
+		
+		#increment count and check if count is 1 or 2
 		count=$((count + 1))
+
+		#if count is one, we will get username and first name by cutting, then add to totalString
 		if (( $count == 1 )); then
 			
 			userName=$(echo $result | cut -f 1 -d ':')
 			firstName=$(echo $result | rev | cut -f 1 -d ':' | rev)
 			totalString+=$(echo -e $userName, $firstName" ")		
 
-
+		#otherwise we will get the last name of the user by cutting and append it to totalString
 		else
 			lastName=$(echo $result | cut -f 1 -d ',')
 			totalString+=$(echo "$lastName")
 
+		#output the username and full name properly then reset variables for next loop
 		echo $totalString
 		totalString=""	
 		count=0
+
 		fi
 	done
 
