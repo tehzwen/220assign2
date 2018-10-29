@@ -1,29 +1,133 @@
 #!/bin/bash
 
+#initializing regular expressions to compare to, and other variables needed
 args=$@
+regexpOne="^[0-9]{1,100}-$"
+regexpTwo="^-[0-9]{1,100}$"
+regexpThree="^[0-9]{1,100}-[0-9]{1,100}$"
+correctArgs=1
 
+#checking if -h param is passed
 if [ "$1" == "-h" ]; then
-	echo -e "usage: $(basename -- "$0") [options] [[n]-[m]]\nDetermine the minimum used numeric group ID. If provided, n and m\nlimit (inclusively) the minimum and maximum group IDs for the search."
-	shift
+	correctArgs=2
+
+#check if the parameter passed (if not -h) matches any of our predetermined regular expressions
+elif $(echo "$1" | grep -Eq $regexpOne) || $(echo "$1" | grep -Eq $regexpTwo) || $(echo "$1" | grep -Eq $regexpThree) || [ "$1" == "" ]; then
+	correctArgs=0
 
 fi
 
+#if the correctArgs flag is 1, we throw usage message and exit on status 2, if it is 2 we exit with 0 after displaying the same message
+if [ $correctArgs -eq 1 ]; then
+	echo -e "usage: $(basename -- "$0") [options] [[n]-[m]]\nDetermine the minimum used numeric group ID.     If provided, n and m\nlimit (inclusively) the minimum and maximum group IDs for the search.\n" 
+	echo -e "Options:\n-h  Display this help message."
+	exit 2
+
+elif [ $correctArgs -eq 2 ]; then
+	echo -e "usage: $(basename -- "$0") [options] [[n]-[m]]\nDetermine the minimum used numeric group ID.     If provided, n and m\nlimit (inclusively) the minimum and maximum group IDs for the search.\n" 
+	echo -e "Options:\n-h  Display this help message."
+	exit 0
+fi
+
+#we use cut to get the first number and the second number in the argument
 firstNum=$(echo $1 | cut -f 1 -d '-')
 lastNum=$(echo $1 | rev | cut -f 1 -d '-' | rev)
 
-if [ "$firstNum" == "" ]; then
-	echo "no first number"
+#if the firstNum doesn't exist or no parameter was passed we enter this loop
+if [ "$firstNum" == "" ] || [ $# -eq 0 ]; then
 
-elif [ "$lastNum" == "" ] ; then
-	echo "no second number"
+	count=0
 
+	while true; do
+		
+		#check if a group with that exact number exists and check the exit status	
+		getent group | grep -w $count >& /dev/null		
+
+		#we find a group that is free so we echo the result and exit with success
+		if [ $? != 0 ]; then
+		
+			echo $count
+			exit 0
+		fi
+	
+		#increment count
+		count=$((count + 1))
 
 	
+	done
+
+	#finished loop, no results so exit 1
+	exit 1
+
+#if there is no secondNum passed we enter this loop
+elif [ "$lastNum" == "" ] ; then
+
+	#set our count to the value of the firstNum
+	count=$firstNum
+
+	while true ; do
+		
+		#check for this group number in group database
+		getent group | grep -w $count >& /dev/null		
+
+		#found a free group ID, echo and exit 0
+		if [ $? != 0 ]; then
+			echo $count
+			exit 0
+		fi
+		
+		#increment count
+		count=$((count + 1))
+
+	
+	done
+
+	#finished loop, no results so exit 1
+	exit 1
+	
+#handles the case of both a lower and max limit are provided
+else
+	#set the count to lower num and set foundMin to false
+	count=$firstNum
+	foundMin=1;
+
+	#loop through the range of the two numbers
+	while [ "$count" -le "$lastNum" ]; do
+		
+		#check if a group exists exactly with that GID
+		getent group | grep -w $count >& /dev/null		
+
+		#Found a free one
+		if [ $? != 0 ]; then
+			
+			#first time finding so we set min and foundMin
+			if [ "$foundMin" -eq 1 ]; then
+
+				min=$count
+				foundMin=0
+
+			fi
+
+			#max will continue to change as the loop progresses which leaves it with the last(largest) GID in the range available
+			max=$count
+
+		fi
+	
+		#increment count
+		count=$((count + 1))
+
+	done
+
+	#if they both exist, echo them out and exit 0
+	if [[ $min && $max ]]; then
+
+		echo $min
+		echo $max
+		exit 0
+	fi
+	
+	#finished loop, no results so exit 1
+	exit 1	
+	
 fi
-
-echo $firstNum
-echo $lastNum
-
-
-
 
