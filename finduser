@@ -2,25 +2,42 @@
 
 
 args=$#
+totalString=""
+count=0
 
 if [ $args -eq 0 ] ; then
 	echo -e "usage: $(basename -- "$0") search_term...\nFind every user that has all of the case-insensitive unordered search\nterms present in his/her account's comment field."
 else
-	temp=$(getent passwd | grep $1)
-	tempTwo=$temp	
+	temp=$(getent passwd | grep -i $1)
+	tempTwo=$temp 
 	shift
 
-	#grep "$1" <<< "$temp"
-
-
 	while [ $1 ]; do
-		tempTwo=$(grep "$1" <<< "$temp")
-		temp=$tempTwo
+		tempTwo=$(grep -i "$1" <<< "$temp")
 		shift
 	done
 	
 
-	echo $tempTwo | cut -f 1 -d ':'
+
+	for result in $tempTwo; do
+		count=$((count + 1))
+		if (( $count == 1 )); then
+			
+			userName=$(echo $result | cut -f 1 -d ':')
+			firstName=$(echo $result | rev | cut -f 1 -d ':' | rev)
+			totalString+=$(echo -e $userName, $firstName" ")		
+
+
+		else
+			lastName=$(echo $result | cut -f 1 -d ',')
+			totalString+=$(echo "$lastName")
+
+		echo $totalString
+		totalString=""	
+		count=0
+		fi
+	done
+
 
 fi
 
