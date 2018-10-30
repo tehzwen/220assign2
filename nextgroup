@@ -1,5 +1,10 @@
 #!/bin/bash
 
+#Zachary Shaw
+#CMPT220/Fall2018
+#Assignment2 
+#nextgroup
+
 #initializing regular expressions to compare to, and other variables needed
 args=$@
 regexpOne="^[0-9]{1,100}-$"
@@ -130,4 +135,5 @@ else
 	exit 1	
 	
 fi
+
 

@@ -1,5 +1,11 @@
 #!/bin/bash
 
+#Zachary Shaw
+#CMPT220/Fall2018
+#Assignment2 
+#cpuusers
+
+#initialize variables and commands
 allProcesses=$(ps -eo user:20,time --no-headers | sort)
 userName=""
 count=0
@@ -10,45 +16,43 @@ mins=00
 secs=00
 totalString=""
 
-#echo $allProcesses
-
+#iterate through the different values in allProcesses
 for value in $allProcesses; do
-
-	#echo $value
-	#echo "count:" $count
-
 	
-	#first time we check values
+	#first time we check values set userName, uid and fullName
 	if [ "$userName" == "" ]; then
 		userName=$value
 		uid=$(id -u $userName)
 		fullName=$(getent passwd $uid | cut -f 5 -d ':' | cut -f 1 -d ',')
 
-
+	#retrieves the time (every second line)
 	elif [ "$count" -eq 0 ]; then
-			
-		#echo "a time:" $value
-		count=$((count + 1))
 		
+		#increment count variable, get hours, minutes and seconds using cut	
+		count=$((count + 1))
 		hours=$((hours + $(echo $value | cut -f 1 -d ':')))
 		mins=$((mins + $(echo $value | cut -f 2 -d ':' | rev | cut -f 1 -d ':' | rev)))
 		tempSecs=$(echo $value | rev | cut -f 1 -d ':' | rev)
+		
+		#need to remove leading zero in order to add (was getting errors for 08 and 09 values being added)
 		tempSecs=${tempSecs//0/}
-		#echo $tempSecs
 		secs=$((secs + tempSecs))
 
 
-
+	#retrieves the username here
 	else
 		
+		#checks if the username has changed
 		if [ $value != $userName ]; then
 
+			#check if we have over 60 seconds and convert it into minutes
 			while [ "$secs" -ge 60  ];do
 				mins=$((mins + 1))
 				secs=$((secs - 60))
 
 			done	
 
+			#check if we have over 60 minutes and convert it into hours
 			while [ "$mins" -ge 60  ];do
 
 				hours=$((hours + 1))
@@ -56,21 +60,23 @@ for value in $allProcesses; do
 
 			done
 
-
+			#convert seconds and minutes back to 00:00 format
 			secs=$(printf "%02d" "$secs")
 			mins=$(printf "%02d" "$mins")
-			
-	
-#			totalString=$(printf "%d\t%d:%d:%d\t%s\n" "$uid" "$hours" "$mins" "$secs" "$fullName")
-	
+		
+			#append the proper format to totalString	
 			totalString="$totalString"$'\n'"$uid"$'\t'"$hours"':'"$mins"':'"$secs"$'\t'"$fullName"
+
+			#reset the time values and set the userName to its new value
 			secs=0
 			mins=0
 			hours=0
 			userName=$value			
 				
+			#run the id command and redirect to get exit status
 			id -u $userName >& /dev/null
 
+			#check if exit status is good, then find uid and fullName
 			if [ $? -eq 0 ]; then
 				uid=$(id -u $userName)
 				fullName=$(getent passwd $uid | cut -f 5 -d ':' | cut -f 1 -d ',') 
@@ -79,14 +85,15 @@ for value in $allProcesses; do
 			fi
 
 		fi	
-
-		#echo "what the fuck" $value $userName $uid
+		
+		#reset value of count
 		count=0
 
 	fi	
 	
 done
 
+#sort the final string correctly
 totalString=$(echo "$totalString" | sort -r -k 2)
 
 echo "$totalString"
