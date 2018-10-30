@@ -1,0 +1,92 @@
+#!/bin/bash
+
+allProcesses=$(ps -eo user:20,time --no-headers | sort)
+userName=""
+count=0
+uid=0
+timeTotal=0
+hours=00
+mins=00
+secs=00
+totalString=""
+
+#echo $allProcesses
+
+for value in $allProcesses; do
+
+	#echo $value
+	#echo "count:" $count
+
+	
+	#first time we check values
+	if [ "$userName" == "" ]; then
+		userName=$value
+		uid=$(id -u $userName)
+		fullName=$(getent passwd $uid | cut -f 5 -d ':' | cut -f 1 -d ',')
+
+
+	elif [ "$count" -eq 0 ]; then
+			
+		#echo "a time:" $value
+		count=$((count + 1))
+		
+		hours=$((hours + $(echo $value | cut -f 1 -d ':')))
+		mins=$((mins + $(echo $value | cut -f 2 -d ':' | rev | cut -f 1 -d ':' | rev)))
+		tempSecs=$(echo $value | rev | cut -f 1 -d ':' | rev)
+		tempSecs=${tempSecs//0/}
+		#echo $tempSecs
+		secs=$((secs + tempSecs))
+
+
+
+	else
+		
+		if [ $value != $userName ]; then
+
+			while [ "$secs" -ge 60  ];do
+				mins=$((mins + 1))
+				secs=$((secs - 60))
+
+			done	
+
+			while [ "$mins" -ge 60  ];do
+
+				hours=$((hours + 1))
+				mins=$((mins - 60))
+
+			done
+
+
+			secs=$(printf "%02d" "$secs")
+			mins=$(printf "%02d" "$mins")
+			
+	
+#			totalString=$(printf "%d\t%d:%d:%d\t%s\n" "$uid" "$hours" "$mins" "$secs" "$fullName")
+	
+			totalString="$totalString"$'\n'"$uid"$'\t'"$hours"':'"$mins"':'"$secs"$'\t'"$fullName"
+			secs=0
+			mins=0
+			hours=0
+			userName=$value			
+				
+			id -u $userName >& /dev/null
+
+			if [ $? -eq 0 ]; then
+				uid=$(id -u $userName)
+				fullName=$(getent passwd $uid | cut -f 5 -d ':' | cut -f 1 -d ',') 
+			
+
+			fi
+
+		fi	
+
+		#echo "what the fuck" $value $userName $uid
+		count=0
+
+	fi	
+	
+done
+
+totalString=$(echo "$totalString" | sort -r -k 2)
+
+echo "$totalString"
