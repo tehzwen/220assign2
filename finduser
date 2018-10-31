@@ -15,7 +15,7 @@ foundResult=0
 
 #check if no arguments are passed to the command
 if [ $args -eq 0 ] ; then
-	echo -e "usage: $(basename -- "$0") search_term...\nFind every user that has all of the case-insensitive unordered search\nterms present in his/her account's comment field." > /dev/null
+	echo -e "usage: $(basename -- "$0") search_term...\nFind every user that has all of the case-insensitive unordered search\nterms present in his/her account's comment field." >&2
 else
 	#get initial results from passwd db and find the first argument in it
 	temp=$(getent passwd | grep -i $1)
