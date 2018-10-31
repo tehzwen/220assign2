@@ -11,10 +11,11 @@
 args=$#
 totalString=""
 count=0
+foundResult=0
 
 #check if no arguments are passed to the command
 if [ $args -eq 0 ] ; then
-	echo -e "usage: $(basename -- "$0") search_term...\nFind every user that has all of the case-insensitive unordered search\nterms present in his/her account's comment field."
+	echo -e "usage: $(basename -- "$0") search_term...\nFind every user that has all of the case-insensitive unordered search\nterms present in his/her account's comment field." > /dev/null
 else
 	#get initial results from passwd db and find the first argument in it
 	temp=$(getent passwd | grep -i $1)
@@ -51,6 +52,10 @@ else
 
 		#output the username and full name properly then reset variables for next loop
 		echo $totalString
+		if [ "$totalString" != ""  ]; then
+			foundResult=1
+		fi
+
 		totalString=""	
 		count=0
 
@@ -60,7 +65,14 @@ else
 
 fi
 
-	
+#handling when result is found or not
+if [ "$foundResult" = 1 ];then
+	exit 0
+else
+	exit 1
+
+fi
+
 	
 
 
