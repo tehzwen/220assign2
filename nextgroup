@@ -24,14 +24,14 @@ fi
 
 #if the correctArgs flag is 1, we throw usage message and exit on status 2, if it is 2 we exit with 0 after displaying the same message
 if [ $correctArgs -eq 1 ]; then
-	echo -e "usage: $(basename -- "$0") [options] [[n]-[m]]\nDetermine the minimum used numeric group ID.     If provided, n and m\nlimit (inclusively) the minimum and maximum group IDs for the search.\n" 
-	echo -e "Options:\n-h  Display this help message."
+	echo -e "usage: $(basename -- "$0") [options] [[n]-[m]]\nDetermine the minimum used numeric group ID.     If provided, n and m\nlimit (inclusively) the minimum and maximum group IDs for the search.\n" > /dev/null 
+	echo -e "Options:\n-h  Display this help message." > /dev/null
 	exit 2
 
 elif [ $correctArgs -eq 2 ]; then
-	echo -e "usage: $(basename -- "$0") [options] [[n]-[m]]\nDetermine the minimum used numeric group ID.     If provided, n and m\nlimit (inclusively) the minimum and maximum group IDs for the search.\n" 
-	echo -e "Options:\n-h  Display this help message."
-	exit 0
+	echo -e "usage: $(basename -- "$0") [options] [[n]-[m]]\nDetermine the minimum used numeric group ID.     If provided, n and m\nlimit (inclusively) the minimum and maximum group IDs for the search.\n" > /dev/null 
+	echo -e "Options:\n-h  Display this help message." > /dev/null
+	exit 1
 fi
 
 #we use cut to get the first number and the second number in the argument
